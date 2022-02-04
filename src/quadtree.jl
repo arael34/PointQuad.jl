@@ -1,7 +1,13 @@
-mutable struct Particle
-    x::Real
-    y::Real
-end
+module arael
+
+import Base: push!, append!, insert!, length, in, /
+
+const Point = Tuple{Real, Real}
+
+sq_distance(x1, y1, x2, y2) = (x2 - x1) ^ 2 + (y2 - y1) ^ 2
+distance(x1, y1, x2, y2) = sqrt(sq_disance(x1, y1, x2, y2))
+
+position((x, y)::Point) = (x, y)
 
 abstract type Boundary end
 
@@ -11,7 +17,9 @@ struct Sqr <: Boundary
     s::Real
 end
 
-function in(point::Particle, sq::Sqr)
+/(sq::Sqr, n::Real) = Sqr(sq.x, sq.y, sq.s / n)
+
+function in(point::Point, sq::Sqr)
     ss = sq.s / 2
     point.x >= sq.x - ss &&
     point.x <= sq.x + ss &&
@@ -32,7 +40,7 @@ end
 
 function vertices(sq::Sqr)
     ss = sq.s / 2
-    return Particle[
+    return Point[
         (sq.x - ss, sq.y - ss)
         (sq.x + ss, sq.y - ss)
         (sq.x + ss, sq.y + ss)
@@ -46,37 +54,47 @@ struct Circle <: Boundary
     r::Real
 end
 
-function in(point::Particle, c::Circle)
-    x, y = point.x, point.y
+/(c::Circle, n::Real) = Circle(c.x, c.y, c.r / n)
+
+function in(point::Point, c::Circle)
+    sq_d = sq_distance(point.x, point.y, c.x, c.y)
+    return sq_d <= c.r ^2
 end
+
+function in(c1::Circle, c2::Circle)
+    sq_d = sq_distance(c2.x, c2.y, c1.x, c1.y)
+    return sq_d < c1.r + c2.r
+end
+
+function in(c::Circle, sq::Sqr)
+    dx = abs(sq.x - c.x)
+    dy = abs(sq.y - c.y)
+    s = sq.s / 2
+    if dx > c.r + s || dy > c.r + s return false end
+    if dx <= s || dy <= s return true end
+    return (dx - s) ^ 2 + (dy - s) ^ 2 <= r ^ 2
+end
+
+in(sq::Sqr, c::Circle) = c in sq
 
 mutable struct QuadTree
     bound::Sqr
     capacity::Int
-    points::Vector{Particle}()
-    sections::Vector{Quadtree}()
-    QuadTree(init::Function) = (self = new(); init(self); self)
+    points::Vector{Point}()
+    sections::Vector{QuadTree}()
 end 
 
-function QuadTree(bound::Sqr, capacity::Int)
-    return QuadTree() do self
-        self.bound = bound
-        self.capacity = capacity
-        self.points = Vector{Particle}()
-        self.sections = Vector{Quadtree}()
-end
+isleaf(qt::QuadTree) = isempty(qt.sections)
 
-isleaf(qt::QuadTree) = isempty(qt.secitons)
-
-function insert!(qt::QuadTree, p::Particle)::Bool
-   
+function insert!(qt::QuadTree, p::Point)::Bool
+    !(p in qt.bound) && return false
     if length(qt.points) < qt.capacity
         push!(qt.points, p)
         return true
     else
         isleaf(qt) && subdivide!(qt)
         for section in qt.sections
-            if insert!(section, item)
+            if insert!(section, p)
                 return true
             end
         end
@@ -84,17 +102,20 @@ function insert!(qt::QuadTree, p::Particle)::Bool
 end
 
 function subdivide!(qt::QuadTree)
-    
-    qt.sectons = QuadTree.(centers, length/2, qt.capacity)
+    s = qt.bound.s
+    points = vertices(qt.bound / 2)
+    for point in points
+        push!(qt.sections, QuadTree(point.x, point.y, s/2, qt.capacity))
+    end
 end
 
-push!(qt::QuadTree, points::Particle...) = begin
+push!(qt::QuadTree, points::Point...) = begin
     for point in points
         insert!(qt, point)
     end
 end
 
-append!(qt::QuadTree, col::Vector{Particle}...) = begin
+append!(qt::QuadTree, col::Vector{Point}...) = begin
     for points in col
         push!(qt, points...)
     end
@@ -102,7 +123,22 @@ end
 
 size(qt::QuadTree) = length(qt.points)
 
-function query(qt::QuadTree, center::Tuple{Int, Int}, length::Int)
-
+function query(qt::QuadTree, bounds::Boundary)
+    result = Vector{Point}()
+    if bounds in qt.bound
+        append!(result, filter(p -> p in bounds, qt.points))
+        if !isleaf(qt)
+            for section in qt.sections
+                append(result, query(section, bounds))
+            end
+        end
+    end
 end
 
+function search(qt::QuadTree, x::Real, y::Real, rad::Real)
+    return query(qt, Circle(x, y, rad))
+end
+
+position(p::Point) = 
+
+end

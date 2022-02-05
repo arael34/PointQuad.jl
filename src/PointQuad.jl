@@ -1,8 +1,21 @@
 #=
 TODO
-fix and clean up generate_quad()
-delete gamezero stuff
+clean up
 =#
+module PointQuad
+
+export
+    Point,
+    Sqr,
+    QuadTree,
+    isleaf,
+    get_subsquares,
+    generate_trees,
+    contains,
+    intersects,
+    subdivide!,
+    insert!,
+    query
 
 struct Point
     x::Real
@@ -37,12 +50,32 @@ function get_subsquares(boundary::Sqr)
     ]
 end
 
+function generate_trees(qt::QuadTree)
+    trees = Vector{QuadTree}()
+    push!(trees, qt)
+    if length(qt.points) == 0 return trees end
+    for section in qt.cr
+        append!(trees, generate_trees(section))
+    end
+
+    return trees
+end
+
 function contains(boundary::Sqr, p::Point)
     (
         p.x > boundary.x - boundary.s / 2 &&
         p.x < boundary.x + boundary.s / 2 &&
         p.y > boundary.y - boundary.s / 2 &&
         p.y < boundary.y + boundary.s / 2
+    )
+end
+
+function intersects(A::Sqr, B::Sqr)
+    !(
+        A.x - A.s / 2 >= B.x + B.s / 2 ||
+        A.x + A.s / 2 <= B.x - B.s / 2 ||
+        A.y - A.s / 2 >= B.y + B.s / 2 ||
+        A.y + A.s / 2 <= B.y - B.s / 2
     )
 end
 
@@ -64,15 +97,6 @@ function insert!(qt::QuadTree, p::Point)
     end
 end
 
-function intersects(A::Sqr, B::Sqr)
-    !(
-        A.x - A.s / 2 >= B.x + B.s / 2 ||
-        A.x + A.s / 2 <= B.x - B.s / 2 ||
-        A.y - A.s / 2 >= B.y + B.s / 2 ||
-        A.y + A.s / 2 <= B.y - B.s / 2
-    )
-end
-
 function query(qt::QuadTree, bounds::Sqr)
     found = Vector{Point}()
     if !intersects(qt.boundary, bounds) return found end
@@ -84,17 +108,8 @@ function query(qt::QuadTree, bounds::Sqr)
     for section in qt.cr
         append!(found, query(section, bounds))
     end
-    
+
     return found
 end
 
-function generate_trees(qt::QuadTree)
-    trees = Vector{QuadTree}()
-    push!(trees, qt)
-    if length(qt.points) == 0 return trees end
-    for section in qt.cr
-        append!(trees, generate_trees(section))
-    end
-
-    return trees
-end
+end # module

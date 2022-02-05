@@ -1,5 +1,5 @@
 using GameZero
-Base.include("test.jl")
+include("PointQuad.jl")
 
 const WIDTH = 800
 const HEIGHT = 800

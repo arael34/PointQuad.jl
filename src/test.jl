@@ -65,8 +65,25 @@ function insert!(qt::QuadTree, p::Point)
     end
 end
 
+pslol = Vector{Point}()
+for i in 1:10
+    push!(pslol, Point(rand(200:400), rand(200:400)))
+end
+
+function generate_quad(qt::QuadTree)
+    l = Vector{QuadTree}()
+    push!(l, qt)
+    if length(qt.points) > 0
+        
+    end
+end
+
 function draw(v::Game)
     qt = QuadTree(Sqr(200, 200, 200), 4)
-    draw(Rect(qt.boundary.x, qt.boundary.y, qt.boundary.s, qt.boundary.s), colorant"black", fill = false)
+    for p in pslol
+        insert!(qt, p)
+        draw(Circle(trunc(Int, p.x), trunc(Int, p.y), 1), colorant"black", fill = true)
+    end
+
 end
 

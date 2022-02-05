@@ -2,12 +2,13 @@ module arael
 
 import Base: push!, append!, insert!, length, in, /
 
-const Point = Tuple{Real, Real}
-
 sq_distance(x1, y1, x2, y2) = (x2 - x1) ^ 2 + (y2 - y1) ^ 2
 distance(x1, y1, x2, y2) = sqrt(sq_disance(x1, y1, x2, y2))
 
-position((x, y)::Point) = (x, y)
+struct Point
+    x::Real
+    y::Real
+end
 
 abstract type Boundary end
 
@@ -80,8 +81,8 @@ in(sq::Sqr, c::Circle) = c in sq
 mutable struct QuadTree
     bound::Sqr
     capacity::Int
-    points::Vector{Point}()
-    sections::Vector{QuadTree}()
+    points::Vector{Point}
+    sections::Vector{QuadTree}
 end 
 
 isleaf(qt::QuadTree) = isempty(qt.sections)
@@ -138,7 +139,5 @@ end
 function search(qt::QuadTree, x::Real, y::Real, rad::Real)
     return query(qt, Circle(x, y, rad))
 end
-
-position(p::Point) = 
 
 end

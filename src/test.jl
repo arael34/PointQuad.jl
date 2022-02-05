@@ -4,6 +4,12 @@ const WIDTH = 800
 const HEIGHT = 800
 const BACKGROUND = colorant"antiquewhite"
 
+#=
+TODO
+fix and clean up generate_quad()
+delete gamezero stuff
+=#
+
 struct Point
     x::Real
     y::Real

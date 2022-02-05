@@ -32,23 +32,23 @@ function QuadTree(b::Sqr, c::Int)
     QuadTree(b, c, Vector{Point}(), Vector{QuadTree}())
 end
 
-isleaf(qt::QuadTree) = isempty(qt.cr)
+isleaf(qt::QuadTree) = length(qt.cr) == 0
 
 function vertices(boundary::Sqr)
     [
-        Sqr(boundary.x + boundary.s / 2, boundary.y - boundary.s / 2, boundary.s / 2),
-        Sqr(boundary.x - boundary.s / 2, boundary.y - boundary.s / 2, boundary.s / 2),
-        Sqr(boundary.x + boundary.s / 2, boundary.y + boundary.s / 2, boundary.s / 2),
-        Sqr(boundary.x - boundary.s / 2, boundary.y + boundary.s / 2, boundary.s / 2)
+        Sqr(boundary.x + boundary.s / 4, boundary.y - boundary.s / 4, boundary.s / 2),
+        Sqr(boundary.x - boundary.s / 4, boundary.y - boundary.s / 4, boundary.s / 2),
+        Sqr(boundary.x + boundary.s / 4, boundary.y + boundary.s / 4, boundary.s / 2),
+        Sqr(boundary.x - boundary.s / 4, boundary.y + boundary.s / 4, boundary.s / 2)
     ]
 end
 
 function contains(boundary::Sqr, p::Point)
     return (
-        p.x > boundary.x - boundary.s &&
-        p.x < boundary.x + boundary.s &&
-        p.y > boundary.y - boundary.s &&
-        p.y < boundary.y + boundary.s
+        p.x > boundary.x - boundary.s / 2 &&
+        p.x < boundary.x + boundary.s / 2 &&
+        p.y > boundary.y - boundary.s / 2 &&
+        p.y < boundary.y + boundary.s / 2
     )
 end
 
@@ -63,19 +63,12 @@ function insert!(qt::QuadTree, p::Point)
     else
         if isleaf(qt)
             subdivide!(qt)
-        else
-            for quad in qt.cr
-                insert!(quad, p)
-            end
+        end
+        for quad in qt.cr
+            insert!(quad, p)
         end
     end
 end
-
-pslol = Vector{Point}()
-for i in 1:50
-    push!(pslol, Point(rand(200:400), rand(200:400)))
-end
-
 
 function generate_quad(qt::QuadTree)
     l = Vector{QuadTree}()
@@ -83,19 +76,29 @@ function generate_quad(qt::QuadTree)
     if length(qt.points) == 0
     else
         for section in qt.cr
-            push!(l, generate_quad(section))
+            for quad in generate_quad(section)
+                push!(l, quad)
+            end
         end
     end
     return l
 end
 
+pslol = Vector{Point}()
+
+qt = QuadTree(Sqr(400, 400, 400), 2)
 
 function draw(v::Game)
-    qt = QuadTree(Sqr(200, 200, 200), 4)
     for p in pslol
-        insert!(qt, p)
         draw(Circle(trunc(Int, p.x), trunc(Int, p.y), 1), colorant"black", fill = true)
     end
-    draw(Rect(qt.boundary.x, qt.boundary.y, qt.boundary.s, qt.boundary.s), colorant"black", fill = false)
+    #draw(Rect(400, 400, 400, 400))
+    for sec in generate_quad(qt)
+        draw(Rect(trunc(Int, sec.boundary.x - sec.boundary.s / 2), trunc(Int, sec.boundary.y - sec.boundary.s / 2), trunc(Int, sec.boundary.s), trunc(Int, sec.boundary.s)), colorant"black", fill = false)
+    end
 end
 
+function on_mouse_move(v::Game, pos)
+    insert!(qt, Point(pos[1], pos[2]))
+    push!(pslol, Point(pos[1], pos[2]))
+end

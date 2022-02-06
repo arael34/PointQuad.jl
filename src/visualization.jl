@@ -10,7 +10,7 @@ foundp = Vector{PointQuad.Point}()
 
 cursor = PointQuad.Sqr(0, 0, 60)
 
-qt = PointQuad.QuadTree(PointQuad.Sqr(WIDTH / 2, HEIGHT / 2, WIDTH), 7)
+qt = PointQuad.QuadTree(PointQuad.Sqr(WIDTH / 2, HEIGHT / 2, WIDTH), 4)
 
 function draw(v::Game)
     for p in pslol

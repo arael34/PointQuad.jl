@@ -1,5 +1,5 @@
 using GameZero
-include("PointQuad.jl")
+game_include("PointQuad.jl")
 
 const WIDTH = 800
 const HEIGHT = 800
@@ -21,15 +21,15 @@ function draw(v::Game)
         draw(Rect(trunc(Int, sec.boundary.x - sec.boundary.s / 2), trunc(Int, sec.boundary.y - sec.boundary.s / 2), trunc(Int, sec.boundary.s), trunc(Int, sec.boundary.s)), colorant"white", fill = false)
     end
     draw(Circle(trunc(Int, cursor.x), trunc(Int, cursor.y), trunc(Int, cursor.s / 2)), colorant"blue", fill = false)
-    foundp = PointQuad.query(qt, Sqr(cursor.x, cursor.y, 60))
+    foundp = PointQuad.query(qt, PointQuad.Sqr(cursor.x, cursor.y, 60))
     for p1 in foundp
         draw(Circle(trunc(Int, p1.x), trunc(Int, p1.y), 3), colorant"green", fill = true)
     end
 end
 
 function on_mouse_down(v::Game, pos, button)
-    PointQuad.insert!(qt, Point(pos[1], pos[2]))
-    PointQuad.push!(pslol, Point(pos[1], pos[2]))
+    PointQuad.insert!(qt, PointQuad.Point(pos[1], pos[2]))
+    push!(pslol, PointQuad.Point(pos[1], pos[2]))
 end
 
 function on_mouse_move(v::Game, pos)

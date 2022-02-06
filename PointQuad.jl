@@ -1,6 +1,7 @@
 #=
 TODO
 clean up
+insert function taking coordinates and/or point
 =#
 module PointQuad
 

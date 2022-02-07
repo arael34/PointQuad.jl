@@ -98,7 +98,7 @@ function insert!(qt::QuadTree, p::Point)
     end
 end
         
-insert!(qt::QuadTree, x::Real, y::Real) = insert!(qt::QuadTree, Point(x, y))
+insert!(qt::QuadTree, x::Real, y::Real) = insert!(qt, Point(x, y))
 
 function query(qt::QuadTree, bounds::Sqr)
     found = Vector{Point}()

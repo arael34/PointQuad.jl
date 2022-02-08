@@ -10,6 +10,7 @@ export
     Sqr,
     QuadTree,
     isleaf,
+    clear!,
     get_subsquares,
     generate_trees,
     contains,
@@ -40,7 +41,17 @@ function QuadTree(b::Sqr, c::Int)
     QuadTree(b, c, Vector{Point}(), Vector{QuadTree}())
 end
 
-isleaf(qt::QuadTree) = length(qt.cr) == 0
+isleaf(qt::QuadTree)::Bool = length(qt.cr) == 0
+
+function clear!(qt::QuadTree)
+    empty!(qt.points)
+    qt.points = Vector{Point}()
+    if !isleaf(qt) return nothing end
+    for section in qt.cr
+        clear!(section)
+        empty!(section.points)
+    end
+end
 
 function get_subsquares(boundary::Sqr)
     [

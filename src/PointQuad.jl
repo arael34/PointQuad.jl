@@ -30,7 +30,8 @@ mutable struct Sqr
     s::Real
 end
 
-mutable struct QuadTree
+mutable struct QuadTree{T}
+    datatype::T
     boundary::Sqr
     capacity::Int
     points::Vector{Point}

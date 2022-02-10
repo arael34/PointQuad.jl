@@ -53,7 +53,7 @@ function clear!(qt::QuadTree)
     end
 end
 
-function get_subsquares(boundary::Sqr)
+function get_subsquares(boundary::Sqr)::Vector{Sqr}
     [
         Sqr(boundary.x + boundary.s / 4, boundary.y - boundary.s / 4, boundary.s / 2),
         Sqr(boundary.x - boundary.s / 4, boundary.y - boundary.s / 4, boundary.s / 2),
@@ -62,7 +62,7 @@ function get_subsquares(boundary::Sqr)
     ]
 end
 
-function generate_trees(qt::QuadTree)
+function generate_trees(qt::QuadTree)::Vector{QuadTree}
     trees = Vector{QuadTree}()
     push!(trees, qt)
     if length(qt.points) == 0 return trees end
@@ -73,7 +73,7 @@ function generate_trees(qt::QuadTree)
     return trees
 end
 
-function contains(boundary::Sqr, p::Point)
+function contains(boundary::Sqr, p::Point)::Bool
     (
         p.x > boundary.x - boundary.s / 2 &&
         p.x < boundary.x + boundary.s / 2 &&
@@ -82,7 +82,7 @@ function contains(boundary::Sqr, p::Point)
     )
 end
 
-function intersects(A::Sqr, B::Sqr)
+function intersects(A::Sqr, B::Sqr)::Bool
     !(
         A.x - A.s / 2 >= B.x + B.s / 2 ||
         A.x + A.s / 2 <= B.x - B.s / 2 ||
@@ -111,7 +111,7 @@ end
         
 insert!(qt::QuadTree, x::Real, y::Real) = insert!(qt, Point(x, y))
 
-function query(qt::QuadTree, bounds::Sqr)
+function query(qt::QuadTree, bounds::Sqr)::Vector{Point}
     found = Vector{Point}()
     if !intersects(qt.boundary, bounds) return found end
     for p in qt.points

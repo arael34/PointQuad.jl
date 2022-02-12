@@ -22,7 +22,7 @@ export
 
 const Point = Tuple{Int32, Int32}
 
-mutable struct Sqr
+struct Sqr
     x::Real
     y::Real
     s::Real

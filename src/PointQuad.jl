@@ -1,7 +1,7 @@
 #=
 TODO
 clean up
-insert function taking coordinates and/or point
+generics
 =#
 module PointQuad
 
@@ -30,23 +30,29 @@ mutable struct Sqr
     s::Real
 end
 
+position(x::Real, y::Real) = (x, y)
+
+get_pos(obj::T) where {T} = position(obj)
+
 mutable struct QuadTree{T}
-    datatype::T
+    datatype::Type{T}
     boundary::Sqr
     capacity::Int
-    points::Vector{Point}
-    cr::Vector{QuadTree}
+    points::Vector{T}
+    cr::Vector{QuadTree{T}}
 end
 
-function QuadTree(b::Sqr, c::Int) 
-    QuadTree(b, c, Vector{Point}(), Vector{QuadTree}())
+function QuadTree{T}(b::Sqr, c::Int) where {T}
+    QuadTree{T}(T, b, c, Vector{T}(), Vector{QuadTree{T}}())
 end
 
-isleaf(qt::QuadTree)::Bool = length(qt.cr) == 0
+function isleaf(qt::QuadTree{T})::Bool where {T}  
+    length(qt.cr) == 0
+end
 
-function clear!(qt::QuadTree)
+function clear!(qt::QuadTree{T}) where {T}
     empty!(qt.points)
-    qt.points = Vector{Point}()
+    qt.points = Vector{T}()
     if !isleaf(qt) return nothing end
     for section in qt.cr
         clear!(section)
@@ -63,8 +69,8 @@ function get_subsquares(boundary::Sqr)::Vector{Sqr}
     ]
 end
 
-function generate_trees(qt::QuadTree)::Vector{QuadTree}
-    trees = Vector{QuadTree}()
+function generate_trees(qt::QuadTree{T})::Vector{QuadTree{T}} where {T}
+    trees = Vector{QuadTree{T}}()
     push!(trees, qt)
     if length(qt.points) == 0 return trees end
     for section in qt.cr
@@ -92,11 +98,11 @@ function intersects(A::Sqr, B::Sqr)::Bool
     )
 end
 
-function subdivide!(qt::QuadTree)
-    qt.cr = QuadTree.(get_subsquares(qt.boundary), qt.capacity)
+function subdivide!(qt::QuadTree{T}) where {T}
+    qt.cr = QuadTree{T}.(get_subsquares(qt.boundary), qt.capacity)
 end
 
-function insert!(qt::QuadTree, p::Point)
+function insert!(qt::QuadTree{T}, p::Point) where {T}
     if !contains(qt.boundary, p) return nothing end
     if length(qt.points) < qt.capacity
         push!(qt.points, p)
@@ -110,10 +116,10 @@ function insert!(qt::QuadTree, p::Point)
     end
 end
         
-insert!(qt::QuadTree, x::Real, y::Real) = insert!(qt, Point(x, y))
+insert!(qt::QuadTree{T}, x::Real, y::Real) where {T} = insert!(qt, Point(x, y))
 
-function query(qt::QuadTree, bounds::Sqr)::Vector{Point}
-    found = Vector{Point}()
+function query(qt::QuadTree{T}, bounds::Sqr)::Vector{T} where {T}
+    found = Vector{T}()
     if !intersects(qt.boundary, bounds) return found end
     for p in qt.points
         if !contains(bounds, p) continue end

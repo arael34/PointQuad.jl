@@ -1,28 +1,26 @@
 #=
 TODO
-clean up
-generics
+clean up, especially visualization script
 =#
 module PointQuad
 
 export
     Point,
     Sqr,
+    position,
+    get_pos,
     QuadTree,
     isleaf,
     clear!,
     get_subsquares,
-    generate_trees,
+    get_trees,
     contains,
     intersects,
     subdivide!,
     insert!,
     query
 
-struct Point
-    x::Real
-    y::Real
-end
+const Point = Tuple{Int32, Int32}
 
 mutable struct Sqr
     x::Real
@@ -30,7 +28,7 @@ mutable struct Sqr
     s::Real
 end
 
-position(x::Real, y::Real) = (x, y)
+position((x, y)::Point) = (x, y)
 
 get_pos(obj::T) where {T} = position(obj)
 
@@ -69,12 +67,12 @@ function get_subsquares(boundary::Sqr)::Vector{Sqr}
     ]
 end
 
-function generate_trees(qt::QuadTree{T})::Vector{QuadTree{T}} where {T}
+function get_trees(qt::QuadTree{T})::Vector{QuadTree{T}} where {T}
     trees = Vector{QuadTree{T}}()
     push!(trees, qt)
     if length(qt.points) == 0 return trees end
     for section in qt.cr
-        append!(trees, generate_trees(section))
+        append!(trees, get_trees(section))
     end
 
     return trees
@@ -82,10 +80,10 @@ end
 
 function contains(boundary::Sqr, p::Point)::Bool
     (
-        p.x > boundary.x - boundary.s / 2 &&
-        p.x < boundary.x + boundary.s / 2 &&
-        p.y > boundary.y - boundary.s / 2 &&
-        p.y < boundary.y + boundary.s / 2
+        p[1] > boundary.x - boundary.s / 2 &&
+        p[1] < boundary.x + boundary.s / 2 &&
+        p[2] > boundary.y - boundary.s / 2 &&
+        p[2] < boundary.y + boundary.s / 2
     )
 end
 
@@ -102,28 +100,27 @@ function subdivide!(qt::QuadTree{T}) where {T}
     qt.cr = QuadTree{T}.(get_subsquares(qt.boundary), qt.capacity)
 end
 
-function insert!(qt::QuadTree{T}, p::Point) where {T}
+function insert!(qt::QuadTree{T}, obj::T) where {T}
+    p = position(obj)
     if !contains(qt.boundary, p) return nothing end
     if length(qt.points) < qt.capacity
-        push!(qt.points, p)
+        push!(qt.points, obj)
     else
         if isleaf(qt)
             subdivide!(qt)
         end
         for quad in qt.cr
-            insert!(quad, p)
+            insert!(quad, obj)
         end
     end
 end
-        
-insert!(qt::QuadTree{T}, x::Real, y::Real) where {T} = insert!(qt, Point(x, y))
 
 function query(qt::QuadTree{T}, bounds::Sqr)::Vector{T} where {T}
     found = Vector{T}()
     if !intersects(qt.boundary, bounds) return found end
-    for p in qt.points
-        if !contains(bounds, p) continue end
-        push!(found, p)
+    for obj in qt.points
+        if !contains(bounds, position(obj)) continue end
+        push!(found, obj)
     end
     if isleaf(qt) return found end
     for section in qt.cr

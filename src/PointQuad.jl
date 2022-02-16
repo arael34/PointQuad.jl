@@ -20,7 +20,7 @@ export
     insert!,
     query
 
-const Point = Tuple{Int32, Int32}
+const Point = Tuple{Int, Int}
 
 struct Sqr
     x::Real

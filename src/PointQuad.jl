@@ -1,6 +1,6 @@
 #=
 TODO
-clean up, especially visualization script
+issue with contains function, < vs <=
 =#
 module PointQuad
 
@@ -8,7 +8,6 @@ export
     Point,
     Sqr,
     position,
-    get_pos,
     QuadTree,
     isleaf,
     clear!,
@@ -30,8 +29,6 @@ end
 
 position((x, y)::Point) = (x, y)
 
-#get_pos(obj::T) where {T} = position(obj)
-
 mutable struct QuadTree{T}
     datatype::Type{T}
     boundary::Sqr
@@ -51,7 +48,7 @@ end
 function clear!(qt::QuadTree{T}) where {T}
     empty!(qt.points)
     qt.points = Vector{T}()
-    if !isleaf(qt) return nothing end
+    if isleaf(qt) return nothing end
     for section in qt.cr
         clear!(section)
         empty!(section.points)
@@ -80,9 +77,9 @@ end
 
 function contains(boundary::Sqr, p::Point)::Bool
     (
-        p[1] > boundary.x - boundary.s / 2 &&
+        p[1] >= boundary.x - boundary.s / 2 &&
         p[1] < boundary.x + boundary.s / 2 &&
-        p[2] > boundary.y - boundary.s / 2 &&
+        p[2] >= boundary.y - boundary.s / 2 &&
         p[2] < boundary.y + boundary.s / 2
     )
 end

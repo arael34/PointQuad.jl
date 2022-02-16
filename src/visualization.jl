@@ -5,33 +5,48 @@ const WIDTH = 800
 const HEIGHT = 800
 const BACKGROUND = colorant"black"
 
-pslol = Vector{PointQuad.Point}()
-foundp = Vector{PointQuad.Point}()
+mutable struct P
+    x::Real
+    y::Real
+    angle::Real
+end
 
-cursor = PointQuad.Sqr(0, 0, 60)
+qt = PointQuad.QuadTree{P}(PointQuad.Sqr(WIDTH / 2, HEIGHT / 2, WIDTH), 2)
 
-qt = PointQuad.QuadTree(PointQuad.Sqr(WIDTH / 2, HEIGHT / 2, WIDTH), 4)
+PointQuad.position(p::P) = (trunc(Int, p.x), trunc(Int, p.y))
 
-function draw(v::Game)
-    for p in pslol
-        draw(Circle(trunc(Int, p.x), trunc(Int, p.y), 1), colorant"white", fill = true)
+function draw()
+    for p in PointQuad.query(qt, PointQuad.Sqr(WIDTH/2, HEIGHT/2, WIDTH))
+        if length(PointQuad.query(qt, PointQuad.Sqr(p.x, p.y, 12))) > 1
+            draw(Circle(trunc(Int, p.x), trunc(Int, p.y), 0), colorant"green", fill = true)
+        else
+            draw(Circle(trunc(Int, p.x), trunc(Int, p.y), 0), colorant"white", fill = true)
+        end
     end
-    #draw(Rect(400, 400, 400, 400))
-    for sec in PointQuad.generate_trees(qt)
+    for sec in PointQuad.get_trees(qt)
         draw(Rect(trunc(Int, sec.boundary.x - sec.boundary.s / 2), trunc(Int, sec.boundary.y - sec.boundary.s / 2), trunc(Int, sec.boundary.s), trunc(Int, sec.boundary.s)), colorant"white", fill = false)
     end
-    draw(Circle(trunc(Int, cursor.x), trunc(Int, cursor.y), trunc(Int, cursor.s / 2)), colorant"blue", fill = false)
-    foundp = PointQuad.query(qt, PointQuad.Sqr(cursor.x, cursor.y, 60))
-    for p1 in foundp
-        draw(Circle(trunc(Int, p1.x), trunc(Int, p1.y), 3), colorant"green", fill = true)
+end
+
+function update()
+    agents = PointQuad.query(qt, PointQuad.Sqr(WIDTH/2, HEIGHT/2, WIDTH))
+    PointQuad.clear!(qt)
+    for p in agents
+        new_x, new_y = p.x + cos(p.angle), p.y + sin(p.angle)
+        if new_x < 5 || new_x >= WIDTH - 5 || new_y < 5 || new_y >= HEIGHT - 5
+            new_x = min(WIDTH - 5, max(5, new_x))
+            new_y = min(HEIGHT - 5, max(5, new_y))
+            p.angle = rand() * 2 * π
+        end
+        p.x, p.y = new_x, new_y
+        PointQuad.insert!(qt, p)
     end
+    agents = nothing
 end
 
 function on_mouse_down(v::Game, pos, button)
-    PointQuad.insert!(qt, PointQuad.Point(pos[1], pos[2]))
-    push!(pslol, PointQuad.Point(pos[1], pos[2]))
-end
-
-function on_mouse_move(v::Game, pos)
-    cursor.x, cursor.y = pos[1], pos[2]
+    PointQuad.insert!(qt, P(pos[1], pos[2], rand() * 2 * π))
+    if button == MouseButtons.RIGHT
+        PointQuad.clear!(qt)
+    end
 end

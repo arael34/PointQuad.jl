@@ -20,7 +20,7 @@ export
     insert!,
     query
 
-const Point = Tuple{Int, Int}
+const Point = Tuple{Real, Real}
 
 struct Sqr
     x::Real
@@ -30,7 +30,7 @@ end
 
 position((x, y)::Point) = (x, y)
 
-get_pos(obj::T) where {T} = position(obj)
+#get_pos(obj::T) where {T} = position(obj)
 
 mutable struct QuadTree{T}
     datatype::Type{T}
@@ -101,14 +101,12 @@ function subdivide!(qt::QuadTree{T}) where {T}
 end
 
 function insert!(qt::QuadTree{T}, obj::T) where {T}
-    p = position(obj)
+    p::Tuple{Int, Int} = position(obj)
     if !contains(qt.boundary, p) return nothing end
     if length(qt.points) < qt.capacity
         push!(qt.points, obj)
     else
-        if isleaf(qt)
-            subdivide!(qt)
-        end
+        isleaf(qt) && subdivide!(qt)
         for quad in qt.cr
             insert!(quad, obj)
         end

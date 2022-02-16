@@ -12,10 +12,10 @@ end
 
 qt = PointQuad.QuadTree{P}(PointQuad.Sqr(WIDTH / 2, HEIGHT / 2, WIDTH), 4)
 
-PointQuad.position(P) = (P.x, P.y)
+PointQuad.position(p::P) = (p.x, p.y)
 
 function draw(v::Game)
-    for p in qt.points
+    for p in PointQuad.query(qt, PointQuad.Sqr(WIDTH/2, HEIGHT/2, WIDTH))
         if length(PointQuad.query(qt, PointQuad.Sqr(p.x, p.y, 12))) > 1
             draw(Circle(trunc(Int, p.x), trunc(Int, p.y), 3), colorant"green", fill = true)
         else

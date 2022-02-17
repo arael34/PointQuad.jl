@@ -13,6 +13,7 @@ export
     clear!,
     get_subsquares,
     get_trees,
+    get_points,
     contains,
     intersects,
     subdivide!,
@@ -122,6 +123,17 @@ function query(qt::QuadTree{T}, bounds::Sqr)::Vector{T} where {T}
         append!(found, query(section, bounds))
     end
 
+    return found
+end
+
+function get_points(qt::QuadTree{T})::Vector{T} where {T}
+    found = Vector{T}()
+    append!(found, qt.points)
+    if isleaf(qt) return found end
+    for section in qt.cr
+        append!(found, get_points(section))
+    end
+    
     return found
 end
 

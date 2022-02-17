@@ -11,12 +11,12 @@ mutable struct P
     angle::Real
 end
 
-qt = PointQuad.QuadTree{P}(PointQuad.Sqr(WIDTH / 2, HEIGHT / 2, WIDTH), 4)
+const qt = PointQuad.QuadTree{P}(PointQuad.Sqr(WIDTH / 2, HEIGHT / 2, WIDTH), 4)
 
 PointQuad.position(p::P) = (trunc(Int, p.x), trunc(Int, p.y))
 
 function draw()
-    agents = PointQuad.query(qt, PointQuad.Sqr(WIDTH/2, HEIGHT/2, WIDTH))
+    agents = PointQuad.get_points(qt)
     PointQuad.clear!(qt)
     for p in agents
         if length(PointQuad.query(qt, PointQuad.Sqr(p.x, p.y, 12))) > 1
